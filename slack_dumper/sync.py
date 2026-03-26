@@ -32,10 +32,10 @@ def run_sync(
         if channel_filter and ch["id"] not in channel_filter and ch["name"] not in channel_filter:
             continue
         logger.info("Syncing messages: #%s (%s)", ch["name"], ch["id"])
-        oldest = conn.execute(
+        row = conn.execute(
             "SELECT last_synced_cursor FROM channels WHERE id=?", (ch["id"],)
         ).fetchone()
-        oldest_ts = oldest["last_synced_cursor"] if oldest else None
+        oldest_ts = row["last_synced_cursor"] if row else None
         sync_messages(client, conn, ch["id"], oldest=oldest_ts)
 
     if not skip_files:
