@@ -67,8 +67,8 @@ def create_app(db_path: str) -> FastAPI:
         channels = _get_channels(conn)
         conn.close()
         return templates.TemplateResponse(
-            "base.html",
-            {"request": request, "channels": channels, "active_channel": None},
+            request, "base.html",
+            {"channels": channels, "active_channel": None},
         )
 
     @app.get("/channel/{channel_id}", response_class=HTMLResponse)
@@ -151,9 +151,8 @@ def create_app(db_path: str) -> FastAPI:
         oldest_ts = raw_msgs[0]["ts"] if raw_msgs else None
         conn.close()
         return templates.TemplateResponse(
-            "channel.html",
+            request, "channel.html",
             {
-                "request": request,
                 "channels": channels,
                 "active_channel": ch,
                 "groups": groups,
