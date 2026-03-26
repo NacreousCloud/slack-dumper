@@ -15,7 +15,8 @@ def download_files(conn: sqlite3.Connection, token: str, base_dir: Path):
 
     headers = {"Authorization": f"Bearer {token}"}
     for row in rows:
-        dest = base_dir / row["id"] / (row["name"] or "file")
+        safe_name = Path(row["name"] or "file").name  # 디렉토리 컴포넌트 제거
+        dest = base_dir / row["id"] / safe_name
         dest.parent.mkdir(parents=True, exist_ok=True)
         try:
             with httpx.stream("GET", row["url_private"], headers=headers, timeout=60) as r:
@@ -31,3 +32,5 @@ def download_files(conn: sqlite3.Connection, token: str, base_dir: Path):
             logger.info("Downloaded %s -> %s", row["name"], dest)
         except Exception as e:
             logger.warning("Failed to download %s: %s", row["id"], e)
+            if dest.exists():
+                dest.unlink(missing_ok=True)
