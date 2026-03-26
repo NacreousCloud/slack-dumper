@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slack Archive</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="workspace-header">
+      <span class="workspace-icon">S</span>
+      <span class="workspace-name">Slack Archive</span>
+    </div>
+
+    <div class="sidebar-search">
+      <input id="global-search" type="text" placeholder="검색..." autocomplete="off">
+      <div id="search-results" class="search-dropdown hidden"></div>
+    </div>
+
+    {% set public_channels = channels | selectattr("type", "eq", "public") | list %}
+    {% set private_channels = channels | selectattr("type", "eq", "private") | list %}
+    {% set dms = channels | selectattr("type", "in", ["im", "mpim"]) | list %}
+
+    {% if public_channels %}
+    <div class="sidebar-section">
+      <div class="section-label">채널</div>
+      {% for ch in public_channels %}
+      <a class="channel-link {% if active_channel and active_channel.id == ch.id %}active{% endif %}"
+         href="/channel/{{ ch.id }}">
+        <span class="ch-icon">#</span>{{ ch.name }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if private_channels %}
+    <div class="sidebar-section">
+      <div class="section-label">비공개 채널</div>
+      {% for ch in private_channels %}
+      <a class="channel-link {% if active_channel and active_channel.id == ch.id %}active{% endif %}"
+         href="/channel/{{ ch.id }}">
+        <span class="ch-icon">🔒</span>{{ ch.name }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if dms %}
+    <div class="sidebar-section">
+      <div class="section-label">다이렉트 메시지</div>
+      {% for ch in dms %}
+      <a class="channel-link {% if active_channel and active_channel.id == ch.id %}active{% endif %}"
+         href="/channel/{{ ch.id }}">
+        <span class="ch-icon dm-icon">●</span>{{ ch.name }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </nav>
+
+  <main class="main-area">
+    {% block content %}
+    <div class="empty-state">
+      <div class="empty-icon">📁</div>
+      <p>채널을 선택하면 메시지를 볼 수 있습니다</p>
+    </div>
+    {% endblock %}
+  </main>
+
+  <aside class="thread-panel hidden" id="thread-panel">
+    <div class="thread-panel-header">
+      <span>스레드</span>
+      <button class="close-thread" onclick="closeThread()">✕</button>
+    </div>
+    <div class="thread-panel-body" id="thread-panel-body"></div>
+  </aside>
+
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="channel-header">
+  <div class="channel-header-left">
+    <span class="ch-title-icon">{% if active_channel.type == 'private' %}🔒{% else %}#{% endif %}</span>
+    <h1 class="ch-title">{{ active_channel.name }}</h1>
+    {% if active_channel.topic %}
+    <span class="ch-divider">|</span>
+    <span class="ch-topic">{{ active_channel.topic }}</span>
+    {% endif %}
+  </div>
+  <div class="channel-header-right">
+    <form class="inline-search-form" method="get">
+      <input class="inline-search" name="q" value="{{ query }}" placeholder="이 채널에서 검색">
+    </form>
+  </div>
+</div>
+
+<div class="messages-area" id="messages-area">
+
+  {% if oldest_ts %}
+  <div class="load-more-wrap">
+    <a class="load-more" href="?before={{ oldest_ts }}{% if query %}&q={{ query }}{% endif %}">
+      ↑ 이전 메시지 더 보기
+    </a>
+  </div>
+  {% endif %}
+
+  {% set ns = namespace(current_date="") %}
+  {% for group in groups %}
+
+    {% if group.msg.fmt_date != ns.current_date %}
+      {% set ns.current_date = group.msg.fmt_date %}
+      <div class="date-divider">
+        <span class="date-divider-label">{{ group.msg.fmt_date }}</span>
+      </div>
+    {% endif %}
+
+    <div class="msg-group" data-ts="{{ group.msg.ts }}">
+      <div class="msg-row">
+        <div class="avatar-col">
+          {% if group.msg.avatar_url %}
+          <img class="avatar" src="{{ group.msg.avatar_url }}" alt="">
+          {% else %}
+          <div class="avatar avatar-fallback">{{ (group.msg.display_name or group.msg.user_id or "?")[0] | upper }}</div>
+          {% endif %}
+        </div>
+        <div class="msg-content">
+          <div class="msg-meta">
+            <span class="msg-username">{{ group.msg.display_name or group.msg.real_name or group.msg.user_id }}</span>
+            <span class="msg-time">{{ group.msg.fmt_ts }}</span>
+          </div>
+          <div class="msg-text">{{ group.msg.text | replace("\n", "<br>") | safe }}</div>
+
+          {% for f in group.files %}
+          <div class="attachment">
+            {% if f.mimetype and f.mimetype.startswith("image/") and f.downloaded %}
+            <img class="img-preview" src="/files/{{ f.id }}" alt="{{ f.name }}" loading="lazy">
+            {% else %}
+            <div class="file-card">
+              <span class="file-icon">📄</span>
+              <div class="file-info">
+                <a class="file-name" href="/files/{{ f.id }}" target="_blank">{{ f.name }}</a>
+                {% if f.size %}<span class="file-size">{{ (f.size / 1024) | round(1) }} KB</span>{% endif %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          {% for cont in group.continuations %}
+          <div class="msg-continuation" data-ts="{{ cont.ts }}">
+            <span class="cont-time">{{ cont.fmt_ts }}</span>
+            <div class="msg-text">{{ cont.text | replace("\n", "<br>") | safe }}</div>
+          </div>
+          {% endfor %}
+
+          {% if group.replies %}
+          <button class="thread-btn"
+            onclick='openThread({{ group | tojson }})'>
+            💬 댓글 {{ group.replies | length }}개
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+  <div class="empty-state">메시지가 없습니다.</div>
+  {% endfor %}
+</div>
+{% endblock %}
