@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slack-dumper"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "slack-sdk>=3.27",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "jinja2>=3.1",
+    "httpx>=0.27",
+    "click>=8.1",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "respx>=0.21"]
+
+[project.scripts]
+slack-dumper = "cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["slack_dumper*"]
