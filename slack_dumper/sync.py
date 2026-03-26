@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from .auth import load_token
+from .auth import load_cookie, load_token
 from .client import SlackClient
 from .db import init_db
 from .fetcher.channels import sync_channels
@@ -19,7 +19,8 @@ def run_sync(
     channel_filter: list[str] | None = None,
 ):
     token = load_token()
-    client = SlackClient(token)
+    cookie = load_cookie()
+    client = SlackClient(token, cookie=cookie)
     conn = init_db(db_path)
 
     logger.info("Syncing users...")
@@ -40,7 +41,7 @@ def run_sync(
 
     if not skip_files:
         logger.info("Downloading files...")
-        download_files(conn, token, files_dir)
+        download_files(conn, token, files_dir, cookie=cookie)
 
     conn.close()
     logger.info("Done.")

@@ -6,7 +6,7 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
-def download_files(conn: sqlite3.Connection, token: str, base_dir: Path):
+def download_files(conn: sqlite3.Connection, token: str, base_dir: Path, cookie: str | None = None):
     """DB에 등록된 미다운로드 파일들을 로컬에 저장"""
     base_dir.mkdir(parents=True, exist_ok=True)
     rows = conn.execute(
@@ -14,6 +14,8 @@ def download_files(conn: sqlite3.Connection, token: str, base_dir: Path):
     ).fetchall()
 
     headers = {"Authorization": f"Bearer {token}"}
+    if cookie:
+        headers["Cookie"] = cookie
     for row in rows:
         safe_name = Path(row["name"] or "file").name  # 디렉토리 컴포넌트 제거
         dest = base_dir / row["id"] / safe_name
