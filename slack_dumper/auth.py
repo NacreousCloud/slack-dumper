@@ -2,10 +2,9 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
 
 def load_token() -> str:
+    load_dotenv()
     token = os.environ.get("SLACK_USER_TOKEN", "")
     if not token.startswith("xoxp-"):
         raise ValueError(
