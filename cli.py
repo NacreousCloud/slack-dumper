@@ -3,7 +3,7 @@ from pathlib import Path
 
 import click
 
-from slack_dumper.sync import run_sync
+from slack_dumper.sync import run_download_files, run_sync
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -26,6 +26,14 @@ def sync(db, files_dir, skip_files, channels):
         skip_files=skip_files,
         channel_filter=list(channels) or None,
     )
+
+
+@main.command("download-files")
+@click.option("--db", default="slack.db", show_default=True, help="SQLite DB 경로")
+@click.option("--files-dir", default="slack_files", show_default=True, help="파일 저장 디렉토리")
+def download_files_cmd(db, files_dir):
+    """DB에 등록된 미다운로드 파일만 내려받기"""
+    run_download_files(db_path=Path(db), files_dir=Path(files_dir))
 
 
 @main.command()

@@ -45,3 +45,19 @@ def run_sync(
 
     conn.close()
     logger.info("Done.")
+
+
+def run_download_files(db_path: Path, files_dir: Path):
+    """DB에 등록된 미다운로드 파일만 내려받는다."""
+    token = load_token()
+    cookie = load_cookie()
+    conn = init_db(db_path)
+
+    pending = conn.execute(
+        "SELECT COUNT(*) FROM files WHERE downloaded=0 AND url_private IS NOT NULL"
+    ).fetchone()[0]
+    logger.info("Pending files to download: %d", pending)
+
+    download_files(conn, token, files_dir, cookie=cookie)
+    conn.close()
+    logger.info("Done.")
