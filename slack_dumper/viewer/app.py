@@ -126,11 +126,14 @@ def create_app(db_path: str) -> FastAPI:
         for group in groups:
             ts = group["msg"]["ts"]
             msg_id = f"{channel_id}:{ts}"
-            group["files"] = conn.execute(
-                "SELECT * FROM files WHERE message_id=?", (msg_id,)
-            ).fetchall()
+            group["files"] = [
+                dict(r)
+                for r in conn.execute(
+                    "SELECT * FROM files WHERE message_id=?", (msg_id,)
+                ).fetchall()
+            ]
             if group["msg"]["reply_count"]:
-                group["replies"] = conn.execute(
+                raw_replies = conn.execute(
                     """
                     SELECT m.*, u.display_name, u.avatar_url
                     FROM messages m
@@ -140,6 +143,10 @@ def create_app(db_path: str) -> FastAPI:
                     """,
                     (ts,),
                 ).fetchall()
+                group["replies"] = [
+                    {**dict(r), "fmt_ts": _fmt_ts(r["ts"])}
+                    for r in raw_replies
+                ]
 
         oldest_ts = raw_msgs[0]["ts"] if raw_msgs else None
         conn.close()
