@@ -116,4 +116,19 @@ def _sync_thread(
                 json.dumps(raw),
             ),
         )
+        for f in raw.get("files", []):
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO files (id, message_id, name, mimetype, size, url_private)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    f["id"],
+                    msg_id,
+                    f.get("name"),
+                    f.get("mimetype"),
+                    f.get("size"),
+                    f.get("url_private_download") or f.get("url_private"),
+                ),
+            )
     conn.commit()
