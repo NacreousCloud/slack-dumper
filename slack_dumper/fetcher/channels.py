@@ -32,9 +32,15 @@ def sync_channels(client: SlackClient, conn: sqlite3.Connection) -> list[dict]:
         }
         conn.execute(
             """
-            INSERT OR REPLACE INTO channels
-                (id, name, type, topic, purpose, member_count, synced_at)
+            INSERT INTO channels (id, name, type, topic, purpose, member_count, synced_at)
             VALUES (:id, :name, :type, :topic, :purpose, :member_count, :synced_at)
+            ON CONFLICT(id) DO UPDATE SET
+                name=excluded.name,
+                type=excluded.type,
+                topic=excluded.topic,
+                purpose=excluded.purpose,
+                member_count=excluded.member_count,
+                synced_at=excluded.synced_at
             """,
             ch,
         )
